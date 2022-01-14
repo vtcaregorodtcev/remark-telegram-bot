@@ -1,0 +1,8 @@
+telegramBot:
+  handler: src/handlers/telegramBot.handler
+  name: ${self:custom.namePrefix}-telegram-bot-handler
+  events:
+    - http:
+        method: any
+        path: /
+        cors: false
