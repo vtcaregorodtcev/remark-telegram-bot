@@ -28,7 +28,7 @@ provider:
     SERVICE_NAME: ${self:service}
     STAGE: ${self:provider.stage}
 
-    BOT_HOOK_PATH: ${self:custom.env.botHook}
+    BOT_HOOK_PATH: ${env:HOOK, self:custom.env.botHook}
     BOT_TOKEN: ${env:TOKEN}
 
 custom:
@@ -61,6 +61,7 @@ plugins:
   - serverless-webpack
   - serverless-deployment-bucket
   - serverless-uuid
+  - serverless-offline
 
 functions:
   - ${file(./sls/functions.yml)}
