@@ -50,6 +50,7 @@
     "joi": "^17.5.0",
     "lambda-request-handler": "^0.5.1-alpha1",
     "node-fetch": "^2.6.6",
+    "node-html-parser": "^5.2.0",
     "serverless-uuid": "^0.1.5",
     "telegraf": "^4.5.2",
     "telegraf-aws": "^1.0.0",

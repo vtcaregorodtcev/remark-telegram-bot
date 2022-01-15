@@ -1,17 +1,15 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: [
-    '@typescript-eslint',
-    'jest',
-  ],
+  plugins: ['@typescript-eslint', 'jest'],
   globals: {
-    module: 'writable'
+    module: 'writable',
   },
   rules: {
-    quotes: ['error', 'single', { 'avoidEscape': true }],
+    quotes: ['error', 'single', { avoidEscape: true }],
     semi: [2, 'always'],
-    '@typescript-eslint/ban-ts-comment': 'off'
+    '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
   },
   extends: [
     'eslint:recommended',
@@ -20,6 +18,6 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
   ],
   env: {
-    node: true
-  }
+    node: true,
+  },
 };
