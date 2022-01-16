@@ -1,8 +1,7 @@
 // @ts-ignore
 import taws from 'telegraf-aws';
 import { Telegraf, Markup } from 'telegraf';
-import Session from 'telegraf-session-local';
-import { BOT_HOOK_PATH, BOT_TOKEN } from '../constants';
+import { BOT_HOOK_PATH, BOT_TOKEN, SESSION_TABLE_NAME } from '../constants';
 import { apiConfigMiddleware } from 'middlewares/api-config';
 import { setApiPathCommand } from 'commands/set-api-path';
 import { setApiXKeyCommand } from 'commands/set-api-x-key';
@@ -10,17 +9,19 @@ import { clearCommand } from 'commands/clear';
 import { detectLinkMiddleware } from 'middlewares/detect-link';
 import { loadPageTextMiddleware } from 'middlewares/load-page-text';
 import { createBookmarkMiddleware } from 'middlewares/create-bookmark';
-import { ExtContext } from 'typings';
+import { ContextWithSession } from 'typings';
 import { toArray } from 'utils/to-array';
 import { remarkLinkMiddleware } from 'middlewares/remark-link';
 import { editBookmarkMiddleware } from 'middlewares/edit-bookmark';
+import { Session } from 'middlewares/session';
+import { DynamoDB } from 'aws-sdk';
 
 const bot = new Telegraf(BOT_TOKEN, {
   telegram: { webhookReply: true }
 });
 
 bot.telegram.setWebhook(BOT_HOOK_PATH);
-bot.use(new Session({ database: '/tmp/session.json' }));
+bot.use(new Session(new DynamoDB(), SESSION_TABLE_NAME).middleware());
 
 bot.start((ctx) => ctx.reply('Hello'));
 
@@ -28,18 +29,17 @@ bot.command('/apiPath', setApiPathCommand);
 bot.command('/apiXKey', setApiXKeyCommand);
 bot.command('/clear', clearCommand);
 
+bot.hears(/^🔖\s\S+/, apiConfigMiddleware, remarkLinkMiddleware);
+
 bot.on(
   'text',
   apiConfigMiddleware,
-  detectLinkMiddleware, // skip check when we updating Bookmarks
+  detectLinkMiddleware,
   loadPageTextMiddleware,
   createBookmarkMiddleware,
-  // ----- Update Bookmarks here due to issue with session -----
-  remarkLinkMiddleware, // remark link when text starts with 🔖
-  editBookmarkMiddleware, // set IsRemarked false if start with ✏️
-  // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-  (ctx) => {
-    const bookmark = (ctx as ExtContext).session.bookmark!;
+  editBookmarkMiddleware,
+  async (ctx) => {
+    const bookmark = (await (ctx as ContextWithSession).session.get('bookmark'))!;
     const topLabels = toArray(bookmark.TopLabels);
 
     const text = !bookmark.IsRemarked
@@ -51,7 +51,7 @@ bot.on(
       ...(
         !bookmark.IsRemarked
           ? (topLabels.map(label => `🔖 ${label}`))
-          : [`✏️ Edit (${bookmark.Label})`]
+          : [`✏️ edit [ ${bookmark.Label} ]`]
       )
     ]])
       .oneTime()

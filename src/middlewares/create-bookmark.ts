@@ -1,17 +1,19 @@
 import { Context } from 'telegraf';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import { ExtContext, NextFunction, Bookmark } from 'typings';
+import { ContextWithSession, NextFunction, Bookmark } from 'typings';
 import fetch from 'node-fetch';
 
 export const createBookmarkMiddleware = async (ctx: Context, next: NextFunction): Promise<Message.TextMessage | void> => {
-  const url = (ctx as ExtContext).session.Link;
+  const session = (ctx as ContextWithSession).session;
+
+  const url = await session.get('Link');
 
   if (!url) {
-    (ctx as ExtContext).session.Link = '';
+    session.set('Link', '');
     return ctx.reply('Please, provide an URL to create a new Bookmark!');
   }
 
-  const { apiConfig, Text } = (ctx as ExtContext).session;
+  const { apiConfig, Text } = await session.load();
 
   try {
     // @ts-ignore
@@ -29,7 +31,7 @@ export const createBookmarkMiddleware = async (ctx: Context, next: NextFunction)
       }
     })).json();
 
-    (ctx as ExtContext).session.bookmark = bookmark;
+    session.set('bookmark', bookmark);
   } catch (e) {
     console.error(e);
     return ctx.reply('Sorry! Something went wrong...');

@@ -13,6 +13,17 @@ Resources:
             - "${self:provider.region}"
             - ".amazonaws.com/"
             - "${self:provider.stage}"
+  SessionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.env.sessionTableName}
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
   iamLambdaRoleExecution:
     Type: AWS::IAM::Role
     Properties:
@@ -41,3 +52,20 @@ Resources:
                   - logs:PutLogEvents
                 Resource:
                   - "arn:aws:logs:*:*:*"
+        - PolicyName: DynamoDB_Policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - "arn:aws:dynamodb:${self:provider.region}:${self:custom.accountId}:table/${self:custom.env.sessionTableName}"
+                  - "arn:aws:dynamodb:${self:provider.region}:${self:custom.accountId}:table/${self:custom.env.sessionTableName}/index/*"
+                  # Only for migration remove or comment this
+                  - "arn:aws:dynamodb:${self:provider.region}:${self:custom.accountId}:table/*"

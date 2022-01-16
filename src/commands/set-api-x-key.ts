@@ -1,16 +1,17 @@
-import { Context } from 'telegraf';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import { ExtContext } from 'typings';
+import { ContextWithMessage, ContextWithSession } from 'typings';
 
-export const setApiXKeyCommand = (ctx: Context & { message: { text: string } }): Promise<Message.TextMessage> => {
+export const setApiXKeyCommand = async (ctx: ContextWithMessage): Promise<Message.TextMessage> => {
   const apiXKey = ctx.message.text.split(' ')[1];
 
   if (!apiXKey) {
     return ctx.reply('Invalid use of command.\n\nUse [ /apiXKey api_key ] syntax');
   }
 
-  const { apiConfig = {} } = (ctx as ExtContext).session || {};
-  (ctx as ExtContext).session.apiConfig = { ...apiConfig, apiXKey };
+  const session = (ctx as ContextWithSession).session;
+
+  const config = await session.get('apiConfig') || {};
+  await session.set('apiConfig', { ...config, apiXKey });
 
   return ctx.reply(`You have set API X-Key: ${apiXKey}`);
 };

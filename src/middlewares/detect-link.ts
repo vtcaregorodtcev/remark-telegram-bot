@@ -1,9 +1,9 @@
-import { Context } from 'telegraf';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import { ExtContext, NextFunction } from 'typings';
+import { ContextWithMessage, ContextWithSession, NextFunction } from 'typings';
+import { isEditCommand } from 'utils/is-edit-command';
 
-export const detectLinkMiddleware = (ctx: Context & { message: { text: string } }, next: NextFunction): Promise<Message.TextMessage> | void => {
-  if (!ctx.message.text.startsWith('🔖 ') && !ctx.message.text.startsWith('✏️ ')) { // skip check when we updating Bookmarks
+export const detectLinkMiddleware = (ctx: ContextWithMessage, next: NextFunction): Promise<Message.TextMessage> | void => {
+  if (!isEditCommand(ctx.message.text)) {
     const regex = /(https?:\/\/[^\s]+)/g;
 
     const match = ctx.message.text.match(regex);
@@ -12,7 +12,7 @@ export const detectLinkMiddleware = (ctx: Context & { message: { text: string } 
       return ctx.reply('Sorry! Looks like it\'s not a Link.');
     }
 
-    (ctx as ExtContext).session.Link = match[0];
+    (ctx as ContextWithSession).session.set('Link', match[0]);
   }
 
   next();

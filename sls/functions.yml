@@ -1,5 +1,6 @@
 telegramBot:
   handler: src/handlers/telegramBot.handler
+  timeout: 30
   name: ${self:custom.namePrefix}-telegram-bot-handler
   events:
     - http:

@@ -1,23 +1,21 @@
 import fetch from 'node-fetch';
-import { Context } from 'telegraf';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import { ExtContext, NextFunction } from 'typings';
+import { ContextWithMessage, ContextWithSession, NextFunction } from 'typings';
+import { isEditCommand } from 'utils/is-edit-command';
 import { toArray } from 'utils/to-array';
 
-export const editBookmarkMiddleware = async (ctx: Context & { message: { text: string } }, next: NextFunction): Promise<Message.TextMessage | void> => {
-  if (!ctx.message.text.startsWith('✏️ ')) { // skip if it's not command starts with ✏️
-    next();
-  } else {
-    const bookmark = (ctx as ExtContext).session.bookmark!;
-    const { apiConfig = {} } = (ctx as ExtContext).session || {};
+export const editBookmarkMiddleware = async (ctx: ContextWithMessage, next: NextFunction): Promise<Message.TextMessage | void> => {
+  if (isEditCommand(ctx.message.text)) {
+    const session = (ctx as ContextWithSession).session;
+    const { bookmark, apiConfig = {} } = await session.load();
 
-    const topLabels = toArray(bookmark.TopLabels);
+    const topLabels = toArray(bookmark!.TopLabels);
 
     topLabels.pop();
-    topLabels.unshift(bookmark.Label);
+    topLabels.unshift(bookmark!.Label);
 
     try {
-      const bmark = await (await fetch(`${apiConfig.apiPath}/bookmarks/${bookmark.Id}`, {
+      const bmark = await (await fetch(`${apiConfig.apiPath}/bookmarks/${bookmark!.Id}`, {
         method: 'PUT',
         body: JSON.stringify({
           ...bookmark,
@@ -30,12 +28,12 @@ export const editBookmarkMiddleware = async (ctx: Context & { message: { text: s
         }
       })).json();
 
-      (ctx as ExtContext).session.bookmark = bmark;
+      session.set('bookmark', bmark);
     } catch (e) {
       console.error(e);
       return ctx.reply('Sorry! Something went wrong...');
     }
-
-    next();
   }
+
+  next();
 };
