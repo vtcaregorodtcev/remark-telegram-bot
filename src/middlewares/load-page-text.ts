@@ -2,7 +2,6 @@ import { Message } from 'telegraf/typings/core/types/typegram';
 import { ContextWithMessage, ContextWithSession, NextFunction } from 'typings';
 import fetch from 'node-fetch';
 import { parse } from 'node-html-parser';
-import { isEditCommand } from 'utils/is-edit-command';
 
 const preprocess = (s: string) => {
   const lower = s.toLowerCase();
@@ -15,26 +14,24 @@ const preprocess = (s: string) => {
 };
 
 export const loadPageTextMiddleware = async (ctx: ContextWithMessage, next: NextFunction): Promise<Message.TextMessage | void> => {
-  if (!isEditCommand(ctx.message.text)) {
-    const session = (ctx as ContextWithSession).session;
+  const session = (ctx as ContextWithSession).session;
 
-    const url = await session.get('Link');
+  const url = await session.get('Link');
 
-    if (!url) {
-      session.set('Link', '');
-      return ctx.reply('Please, provide valid URL');
-    }
+  if (!url) {
+    session.set('Link', '');
+    return ctx.reply('Please, provide valid URL');
+  }
 
-    try {
-      const text = await (await fetch(url)).text();
-      const html = parse(text);
+  try {
+    const text = await (await fetch(url)).text();
+    const html = parse(text);
 
-      const Text = preprocess(html.querySelector('body')?.innerText || '');
+    const Text = preprocess(html.querySelector('body')?.innerText || '');
 
-      await session.set('Text', Text);
-    } catch {
-      session.set('Text', '');
-    }
+    await session.set('Text', Text);
+  } catch {
+    session.set('Text', '');
   }
 
   next();
