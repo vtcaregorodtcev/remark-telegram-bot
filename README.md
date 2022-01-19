@@ -50,6 +50,13 @@ pnpm start:tunnel
 
 <img src="src/assets/ngrok-tunnel.png" alt="ngrok tunnel" />
 
-After this you can start the serverless in offline mode [`pnpm start`] and set webhook for your local bot. [`TOKEN=your_token HOOK=ngrok_url npm run set:webhook`].
+After this you can start the serverless in offline mode [`pnpm start`] and set webhook for your local bot. [`TOKEN=your_token HOOK=ngrok_url/your_stage pnpm run set:webhook`]. Don't forget to specify stage after ngrok url. By default it's `dev`;
 
 To run serverless in offline mode, your bot should be deployed anyway.
+
+## Ecosystem
+
+| Project                                                                       | Status                                                       | Description                                                                               |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| [remark-extension](https://github.com/vtcaregorodtcev/remark-extension)       | <img src="https://img.shields.io/badge/license-MIT-green" /> | The main client. Chrome web-extension. |
+| [remark-aws-backend](https://github.com/vtcaregorodtcev/remark-aws-backend)   | <img src="https://img.shields.io/badge/license-MIT-green" /> <img src="https://badge.fury.io/js/@vtcaregorodtcev%2Fremark-aws-backend.svg" /> | Backend part of Remark extension. Allows to save all created bookmarks and classify them. |
